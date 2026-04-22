@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { AlertTriangle, ShoppingCart } from "lucide-react";
 import type { Product } from "@/types";
 import { useSaleCart } from "@/hooks/useSaleCart";
@@ -81,6 +82,19 @@ export function POSTerminal({ products, exchangeRate, rateUpdatedAt }: Props) {
           </button>
         </div>
       </header>
+
+      {/* Secondary nav */}
+      <nav className="bg-dark/90 border-t border-white/10 px-4 py-1.5 flex items-center gap-5 shrink-0">
+        <Link href="/inventory" className="text-surface/55 hover:text-surface text-xs font-medium transition-colors">
+          Inventory
+        </Link>
+        <Link href="/reports" className="text-surface/55 hover:text-surface text-xs font-medium transition-colors">
+          Reports
+        </Link>
+        <Link href="/admin" className="text-surface/55 hover:text-surface text-xs font-medium transition-colors">
+          Admin
+        </Link>
+      </nav>
 
       {/* Stale rate banner */}
       <div className="px-4 pt-3 shrink-0">
