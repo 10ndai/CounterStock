@@ -121,11 +121,35 @@
 - Reports page has its own PinGate — independent from admin so it can be navigated to directly
 - ZWG revenue shown in USD equivalent for consistent totals; raw ZWG shown as secondary via avgRate
 
-**Pending (Phase 5 — Polish):**
-- Low stock alerts on POS (already has badge — may want pull-out panel)
-- End-of-day cash-up report (USD cash + ZWG cash separately)
-- Offline indicator
-- Tablet layout optimisation
+---
+
+## [2026-04-22] — Phase 5: Polish
+**Built:**
+- [x] `OfflineIndicator` — listens to browser online/offline events, shows a dark banner when disconnected; mounted in POSTerminal
+- [x] `LowStockPanel` — slide-in drawer from POS header button showing all low-stock products with name, stock level, threshold, and a fill bar; button only appears when ≥1 product is low
+- [x] `CashUpReport` — today-only cash-up: USD cash (received/change/net), ZWG cash (received/change/net + USD equivalent), card totals per currency, grand total; refresh + print buttons
+- [x] `/api/reports/cashup` — today-scoped aggregation of all sale records split by currency × method
+- [x] Reports: Cash Up tab added to ReportsClient
+- [x] POS tablet layout — cart sidebar collapses on mobile with a badge-count toggle button in header; cart is full-screen on mobile when opened; md+ always shows sidebar
+
+**Decisions:**
+- Cash-up always scoped to today (no date picker) — that's the intended daily ritual
+- Offline indicator uses native browser events only — no service worker needed at this stage
+- Cart toggle on mobile uses hidden/flex pattern (not z-index overlay) to avoid stacking issues with checkout modal
+
+**Status: All 5 phases complete. System is feature-complete for v1.0.**
+
+### What's ready to ship
+| Feature | Status |
+|---|---|
+| POS terminal (product grid, cart, checkout, receipt) | ✅ |
+| Dual currency (USD + ZWG) | ✅ |
+| Stock tracking (auto-decrement on sale) | ✅ |
+| Inventory (restock, wastage, adjustment, history) | ✅ |
+| Admin (PIN gate, product CRUD, rate management) | ✅ |
+| Reports (summary, top products, transactions, cash-up, CSV export) | ✅ |
+| Offline indicator | ✅ |
+| Low stock alerts | ✅ |
 
 **Commit:** `feat: POS terminal — product grid, weight keypad, cart, checkout flow, receipt`
 

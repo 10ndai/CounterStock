@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { Delete } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -50,9 +51,9 @@ export function PinGate({ children }: Props) {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center">
       <div className="w-80 space-y-6 text-center">
-        <div>
-          <h1 className="text-2xl font-bold text-dark">Admin Panel</h1>
-          <p className="text-sm text-dark/50 mt-1">Enter your PIN to continue</p>
+        <div className="flex flex-col items-center gap-3">
+          <Image src="/logo.png" alt="CounterStock" width={180} height={50} className="object-contain" />
+          <p className="text-sm text-dark/50">Enter your PIN to continue</p>
         </div>
 
         {/* Dots */}

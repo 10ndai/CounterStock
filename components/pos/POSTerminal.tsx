@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { AlertTriangle, ShoppingCart } from "lucide-react";
 import type { Product } from "@/types";
 import { useSaleCart } from "@/hooks/useSaleCart";
@@ -45,10 +46,8 @@ export function POSTerminal({ products, exchangeRate, rateUpdatedAt }: Props) {
       {/* Top bar */}
       <header className="flex items-center justify-between px-4 md:px-6 py-3 bg-dark text-surface shrink-0 gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="min-w-0">
-            <span className="font-bold text-lg tracking-tight">CounterStock</span>
-            <span className="ml-2 text-secondary text-xs font-medium hidden sm:inline">POS</span>
-          </div>
+          <Image src="/logo.png" alt="CounterStock" width={140} height={36} className="object-contain brightness-0 invert" />
+          <span className="text-secondary text-xs font-medium hidden sm:inline">POS</span>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">

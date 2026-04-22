@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { isLowStock, groupByCategory } from "@/lib/utils";
@@ -30,15 +31,13 @@ export default async function InventoryPage() {
     <div className="min-h-screen bg-surface">
       {/* Header */}
       <header className="bg-dark text-surface px-6 py-4 flex items-center gap-4">
-        <Link href="/" className="text-surface/50 hover:text-surface transition-colors">
+        <Link href="/" className="text-surface/50 hover:text-surface transition-colors shrink-0">
           <ArrowLeft size={18} />
         </Link>
-        <div>
-          <h1 className="font-bold text-lg">Inventory</h1>
-          <p className="text-xs text-surface/50">{products.length} active products</p>
-        </div>
+        <Image src="/logo.png" alt="CounterStock" width={130} height={34} className="object-contain brightness-0 invert" />
+        <span className="text-surface/50 text-xs font-medium">Inventory</span>
         {lowStockProducts.length > 0 && (
-          <span className="ml-auto rounded-full bg-alert px-3 py-1 text-xs font-semibold text-white">
+          <span className="ml-auto rounded-full bg-alert px-3 py-1 text-xs font-semibold text-white shrink-0">
             {lowStockProducts.length} low stock
           </span>
         )}

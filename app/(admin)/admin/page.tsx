@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { PinGate } from "@/components/admin/PinGate";
@@ -20,13 +21,11 @@ export default async function AdminPage() {
     <PinGate>
       <div className="min-h-screen bg-surface">
         <header className="bg-dark text-surface px-6 py-4 flex items-center gap-4">
-          <Link href="/" className="text-surface/50 hover:text-surface transition-colors">
+          <Link href="/" className="text-surface/50 hover:text-surface transition-colors shrink-0">
             <ArrowLeft size={18} />
           </Link>
-          <div>
-            <h1 className="font-bold text-lg">Admin Panel</h1>
-            <p className="text-xs text-surface/50">Reed &amp; Carter · CounterStock</p>
-          </div>
+          <Image src="/logo.png" alt="CounterStock" width={130} height={34} className="object-contain brightness-0 invert" />
+          <span className="text-surface/50 text-xs font-medium">Admin</span>
         </header>
 
         <div className="max-w-3xl mx-auto px-4 py-6">
