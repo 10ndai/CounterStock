@@ -39,17 +39,38 @@
 - `unitWeightKg` added to Product schema for unit-sold items (used for stock kg tracking)
 - SQLite db file excluded from git via .gitignore
 
-**Pending (Phase 1 — Core POS):**
-- Product grid (filterable by category) — Server Component
-- Weight input keypad — Client Component
-- Cart Zustand store (`useSaleCart`)
-- Payment flow UI
-- Receipt component (react-to-print)
-- `/api/products` route
-- `/api/sales` route (creates Sale + StockMovements)
-- Stale rate warning banner
-
 **Commit:** `init: scaffold CounterStock — Next.js 15, Tailwind, Prisma/SQLite, shadcn/ui base, 23 seeded products`
+
+---
+
+## [2026-04-22] — Phase 1: POS Terminal
+**Built:**
+- [x] `/api/products` GET — active products ordered by category
+- [x] `/api/settings/rate` GET + POST — exchange rate management
+- [x] `/api/sales` POST — creates Sale + SaleItems + StockMovements in a transaction; decrements stock
+- [x] `useSaleCart` Zustand store — addItem (merges duplicates), removeItem, clearCart, totalUSD
+- [x] `ProductGrid` — category filter tabs + responsive grid
+- [x] `ProductCard` — shows name, price, stock level, low-stock badge
+- [x] `WeightInput` — decimal keypad for kg (3dp) or unit quantities
+- [x] `CartPanel` — live cart with USD total + ZWG equivalent
+- [x] `CheckoutModal` — 4-step flow: currency → method → cash amount → complete
+- [x] `SaleReceipt` — printable monospace receipt (react-to-print)
+- [x] `StaleRateBanner` — warns if rate not updated today
+- [x] `POSTerminal` — Server Component page wires everything together
+
+**Decisions:**
+- POS page is a Server Component — fetches products + settings via Prisma directly (no useEffect)
+- Stock decrement happens server-side in the `/api/sales` transaction — never client-side
+- Cart merges duplicate products by quantity, recalculates total on every change
+- Receipt is hidden in DOM, revealed only for react-to-print
+
+**Pending (Phase 2 — Inventory):**
+- Stock levels dashboard
+- Low stock alerts list
+- Log restock / wastage / adjustment forms
+- Full stock movement history per product
+
+**Commit:** `feat: POS terminal — product grid, weight keypad, cart, checkout flow, receipt`
 
 ---
 
