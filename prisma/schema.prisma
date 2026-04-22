@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./counterstock.db"
+}
+
+model Product {
+  id                   String          @id @default(cuid())
+  name                 String
+  category             String
+  pricePerKgUSD        Float
+  pricePerUnitUSD      Float?
+  soldByWeight         Boolean         @default(true)
+  stockKg              Float           @default(0)
+  lowStockThresholdKg  Float           @default(2.0)
+  unitWeightKg         Float?
+  active               Boolean         @default(true)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  saleItems            SaleItem[]
+  stockMovements       StockMovement[]
+}
+
+model Settings {
+  id             String   @id @default("global")
+  usdToZwgRate   Float    @default(35.50)
+  updatedAt      DateTime @updatedAt
+}
+
+model Sale {
+  id                      String     @id @default(cuid())
+  subtotalUSD             Float
+  totalUSD                Float
+  paymentCurrency         String     // "USD" | "ZWG"
+  exchangeRateUsed        Float
+  totalInPaymentCurrency  Float
+  paymentMethod           String     // "cash" | "card"
+  cashReceived            Float?
+  changeGiven             Float?
+  createdAt               DateTime   @default(now())
+
+  items                   SaleItem[]
+}
+
+model SaleItem {
+  id           String  @id @default(cuid())
+  saleId       String
+  productId    String
+  quantity     Float
+  unitPriceUSD Float
+  totalUSD     Float
+
+  sale         Sale    @relation(fields: [saleId], references: [id])
+  product      Product @relation(fields: [productId], references: [id])
+}
+
+model StockMovement {
+  id          String   @id @default(cuid())
+  productId   String
+  type        String   // "sale" | "restock" | "adjustment" | "wastage"
+  quantityKg  Float
+  notes       String?
+  createdBy   String   @default("system") // "system" | "admin"
+  createdAt   DateTime @default(now())
+
+  product     Product  @relation(fields: [productId], references: [id])
+}
