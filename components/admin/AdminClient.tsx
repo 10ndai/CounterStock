@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
+import { BarChart2 } from "lucide-react";
 import type { Product } from "@/types";
 import { ProductList } from "./ProductList";
 import { RateManager } from "./RateManager";
@@ -40,6 +42,16 @@ export function AdminClient({ products, exchangeRate, rateUpdatedAt }: Props) {
 
       {tab === "products" && <ProductList products={products} />}
       {tab === "rate" && <RateManager currentRate={exchangeRate} updatedAt={rateUpdatedAt} />}
+
+      <div className="pt-2 border-t border-dark/10">
+        <Link
+          href="/reports"
+          className="flex items-center gap-2 text-sm text-primary font-medium hover:underline"
+        >
+          <BarChart2 size={15} />
+          View Reports &amp; Export CSV
+        </Link>
+      </div>
     </div>
   );
 }

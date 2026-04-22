@@ -83,11 +83,31 @@
 - Adjustments always remove stock (quantityKg stored as negative); restocks always add (positive)
 - router.refresh() used after form submit to re-fetch Server Component data without full navigation
 
-**Pending (Phase 3 — Admin Panel):**
-- PIN gate
-- Product CRUD (add, edit, deactivate)
-- USD price management
-- Exchange rate management
+---
+
+## [2026-04-22] — Phase 3: Admin Panel
+**Built:**
+- [x] `ADMIN_PIN` env var in `.env.local` (default: 1234, change before production)
+- [x] `/api/admin/pin` POST — verifies PIN server-side against env var
+- [x] `/api/admin/products` GET + POST — list all (including inactive) + create
+- [x] `/api/admin/products/[id]` PATCH + DELETE — edit fields + soft-deactivate
+- [x] `PinGate` — numeric keypad, auto-submits on 4th digit, dot-indicator feedback
+- [x] `RateManager` — inline rate editor, shows last-updated timestamp and today/stale badge
+- [x] `ProductForm` — add/edit with weight vs unit toggle, all fields validated
+- [x] `ProductList` — full list with edit pencil + activate/deactivate toggle
+- [x] `AdminClient` — Products / Exchange Rate tab shell
+- [x] `/admin` page — Server Component behind PinGate
+
+**Decisions:**
+- PIN verified server-side only — never exposed to client
+- Deactivate is a soft delete (active: false) — product history preserved, reactivation possible
+- `.env.local` excluded from git; default PIN documented here for handoff
+
+**Pending (Phase 4 — Reporting):**
+- Daily sales summary (USD + ZWG split)
+- Top products by revenue
+- Sales by payment currency + method breakdown
+- Export to CSV
 
 **Commit:** `feat: POS terminal — product grid, weight keypad, cart, checkout flow, receipt`
 
