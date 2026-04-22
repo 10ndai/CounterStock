@@ -18,3 +18,10 @@ prisma/*.db-journal
 .DS_Store
 *.pem
 npm-debug.log*
+
+# docs
+*.docx
+
+# build artifacts
+tsconfig.tsbuildinfo
+.claude/
