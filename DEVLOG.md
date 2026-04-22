@@ -103,11 +103,29 @@
 - Deactivate is a soft delete (active: false) — product history preserved, reactivation possible
 - `.env.local` excluded from git; default PIN documented here for handoff
 
-**Pending (Phase 4 — Reporting):**
-- Daily sales summary (USD + ZWG split)
-- Top products by revenue
-- Sales by payment currency + method breakdown
-- Export to CSV
+---
+
+## [2026-04-22] — Phase 4: Reporting
+**Built:**
+- [x] `/api/reports/summary` GET — aggregates sales for a date range; returns totals, currency/method splits, top 10 products, transaction list
+- [x] `SummaryCards` — total transactions, total revenue, USD vs ZWG breakdown, cash vs card breakdown
+- [x] `TopProducts` — ranked bar chart by revenue with % of total share
+- [x] `SalesList` — timestamped transaction table with ref, method, USD + ZWG totals
+- [x] `ReportsClient` — date range picker (today/yesterday/7d/month/custom), tabs, live fetch on range change
+- [x] `exportSalesCsv` / `exportProductsCsv` — client-side CSV generation, no API route needed
+- [x] `/reports` page — PIN-gated, linked from home + admin panel
+- [x] Home page updated with all 4 nav links
+
+**Decisions:**
+- CSV generated client-side from already-fetched data — avoids extra API round trip
+- Reports page has its own PinGate — independent from admin so it can be navigated to directly
+- ZWG revenue shown in USD equivalent for consistent totals; raw ZWG shown as secondary via avgRate
+
+**Pending (Phase 5 — Polish):**
+- Low stock alerts on POS (already has badge — may want pull-out panel)
+- End-of-day cash-up report (USD cash + ZWG cash separately)
+- Offline indicator
+- Tablet layout optimisation
 
 **Commit:** `feat: POS terminal — product grid, weight keypad, cart, checkout flow, receipt`
 

@@ -4,6 +4,7 @@ import { Download } from "lucide-react";
 import { SummaryCards } from "./SummaryCards";
 import { TopProducts } from "./TopProducts";
 import { SalesList } from "./SalesList";
+import { CashUpReport } from "./CashUpReport";
 import { Button } from "@/components/ui/button";
 import { exportSalesCsv, exportProductsCsv } from "@/lib/exportCsv";
 
@@ -33,7 +34,7 @@ interface ReportData {
   }[];
 }
 
-type Tab = "summary" | "products" | "transactions";
+type Tab = "summary" | "products" | "transactions" | "cashup";
 
 function getRangeDates(range: Range, customFrom: string, customTo: string) {
   const now = new Date();
@@ -127,11 +128,12 @@ export function ReportsClient({ defaultRate }: { defaultRate: number }) {
       {data && !loading && (
         <>
           {/* Tabs */}
-          <div className="flex gap-1 rounded-xl bg-dark/5 p-1">
+          <div className="flex gap-1 rounded-xl bg-dark/5 p-1 flex-wrap">
             {([
               { key: "summary" as Tab, label: "Summary" },
-              { key: "products" as Tab, label: `Top Products` },
+              { key: "products" as Tab, label: "Top Products" },
               { key: "transactions" as Tab, label: `Transactions (${data.totalTransactions})` },
+              { key: "cashup" as Tab, label: "Cash Up" },
             ]).map((t) => (
               <button
                 key={t.key}
@@ -184,6 +186,7 @@ export function ReportsClient({ defaultRate }: { defaultRate: number }) {
           {tab === "transactions" && (
             <SalesList sales={data.sales} />
           )}
+          {tab === "cashup" && <CashUpReport />}
         </>
       )}
     </div>
