@@ -64,11 +64,30 @@
 - Cart merges duplicate products by quantity, recalculates total on every change
 - Receipt is hidden in DOM, revealed only for react-to-print
 
-**Pending (Phase 2 — Inventory):**
-- Stock levels dashboard
-- Low stock alerts list
-- Log restock / wastage / adjustment forms
-- Full stock movement history per product
+---
+
+## [2026-04-22] — Phase 2: Inventory Management
+**Built:**
+- [x] `/api/inventory/restock` POST — increments stockKg + creates StockMovement (admin)
+- [x] `/api/inventory/adjustment` POST — decrements stockKg + creates StockMovement (wastage/adjustment)
+- [x] `/api/inventory/movements` GET — last 100 movements, optionally filtered by productId
+- [x] `StockBadge` — green/red badge with stock kg + low-stock icon
+- [x] `RestockForm` — product selector, kg input, notes field
+- [x] `AdjustmentForm` — product selector, wastage/adjustment toggle, kg input, notes
+- [x] `MovementHistory` — chronological feed with type icons and quantity delta
+- [x] `InventoryClient` — tabbed shell: Restock / Adjustment / History
+- [x] `/inventory` page — stock levels table grouped by category + management panel
+
+**Decisions:**
+- All stock changes go through Prisma transactions — product.stockKg + StockMovement created atomically
+- Adjustments always remove stock (quantityKg stored as negative); restocks always add (positive)
+- router.refresh() used after form submit to re-fetch Server Component data without full navigation
+
+**Pending (Phase 3 — Admin Panel):**
+- PIN gate
+- Product CRUD (add, edit, deactivate)
+- USD price management
+- Exchange rate management
 
 **Commit:** `feat: POS terminal — product grid, weight keypad, cart, checkout flow, receipt`
 
