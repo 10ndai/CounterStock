@@ -12,10 +12,6 @@
     --radius: 0.5rem;
   }
 
-  * {
-    @apply border-border;
-  }
-
   body {
     background-color: var(--color-surface);
     color: var(--color-dark);

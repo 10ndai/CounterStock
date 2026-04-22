@@ -20,27 +20,36 @@
 
 <!-- Start logging below this line -->
 
-## [DATE: TBD] — Project Kickoff
+## [2026-04-22] — Project Kickoff / Phase 1 Scaffold
 **Built:**
-- [ ] Scaffold Next.js project with App Router
-- [ ] Set up Tailwind CSS + shadcn/ui
-- [ ] Configure Prisma with SQLite
-- [ ] Define schema: Product, Sale, SaleItem
-- [ ] Scaffold folder structure per CLAUDE.md
-- [ ] Seed initial product list (beef cuts, pork, poultry, processed)
+- [x] Next.js 15 + React 19 with App Router + TypeScript
+- [x] Tailwind CSS with brand colour tokens (primary, secondary, alert, surface, dark)
+- [x] shadcn/ui base components: Button, Badge, Card, Input, Label, Separator
+- [x] Prisma 5 + SQLite — full schema: Product, Settings, Sale, SaleItem, StockMovement
+- [x] Full folder structure per CLAUDE.md (pos, admin, inventory, shared)
+- [x] `/lib/db.ts` — Prisma singleton
+- [x] `/lib/formatters.ts` — formatUSD, formatZWG, convertToZWG, formatWeight
+- [x] `/lib/utils.ts` — cn, isLowStock, groupByCategory, calculateTotal
+- [x] `/types/index.ts` — all TypeScript interfaces
+- [x] Seed: 23 products across Beef, Pork, Poultry, Goat, Processed categories
+- [x] Route shells: `/pos`, `/admin`, `/inventory`, home page
 
 **Decisions:**
-- SQLite chosen for offline-first operation at the counter
-- No auth for cashier — PIN gate only for admin panel
-- Sold-by-weight vs unit handled via `soldByWeight` boolean on Product
+- Upgraded to Next.js 15 / React 19 (Next.js 14 had a critical security vulnerability)
+- `unitWeightKg` added to Product schema for unit-sold items (used for stock kg tracking)
+- SQLite db file excluded from git via .gitignore
 
-**Pending:**
-- POS terminal UI
-- Cart logic (Zustand store)
-- Payment flow
-- Receipt component
+**Pending (Phase 1 — Core POS):**
+- Product grid (filterable by category) — Server Component
+- Weight input keypad — Client Component
+- Cart Zustand store (`useSaleCart`)
+- Payment flow UI
+- Receipt component (react-to-print)
+- `/api/products` route
+- `/api/sales` route (creates Sale + StockMovements)
+- Stale rate warning banner
 
-**Commit:** `init: scaffold project structure and Prisma schema`
+**Commit:** `init: scaffold CounterStock — Next.js 15, Tailwind, Prisma/SQLite, shadcn/ui base, 23 seeded products`
 
 ---
 
