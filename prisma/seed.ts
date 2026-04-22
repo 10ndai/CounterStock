@@ -10,6 +10,7 @@ const products = [
   { name: "Beef Brisket", category: "Beef", pricePerKgUSD: 6.0, soldByWeight: true, stockKg: 10, lowStockThresholdKg: 2 },
   { name: "Beef Tripe", category: "Beef", pricePerKgUSD: 3.5, soldByWeight: true, stockKg: 8, lowStockThresholdKg: 2 },
   { name: "Oxtail", category: "Beef", pricePerKgUSD: 7.0, soldByWeight: true, stockKg: 5, lowStockThresholdKg: 1 },
+  { name: "Commercial Stewing Beef", category: "Beef", pricePerKgUSD: 4.5, soldByWeight: true, stockKg: 20, lowStockThresholdKg: 2 },
 
   // Pork
   { name: "Pork Chops", category: "Pork", pricePerKgUSD: 5.0, soldByWeight: true, stockKg: 18, lowStockThresholdKg: 2 },
