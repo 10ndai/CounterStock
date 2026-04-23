@@ -7,22 +7,53 @@ datasource db {
   url      = "file:./counterstock.db"
 }
 
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  role         String   @default("CASHIER") // OWNER | MANAGER | CASHIER
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  sales          Sale[]
+  stockMovements StockMovement[]
+  auditLogs      AuditLog[]
+}
+
+model Supplier {
+  id            String   @id @default(cuid())
+  name          String
+  contactNumber String?
+  notes         String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  stockMovements StockMovement[]
+  products       Product[]       @relation("ProductDefaultSupplier")
+}
+
 model Product {
   id                   String          @id @default(cuid())
   name                 String
   category             String
   pricePerKgUSD        Float
   pricePerUnitUSD      Float?
+  costPricePerKgUSD    Float?
   soldByWeight         Boolean         @default(true)
   stockKg              Float           @default(0)
   lowStockThresholdKg  Float           @default(2.0)
   unitWeightKg         Float?
   active               Boolean         @default(true)
+  parentId             String?
+  defaultSupplierId    String?
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
 
-  saleItems            SaleItem[]
-  stockMovements       StockMovement[]
+  parent          Product?        @relation("Variants", fields: [parentId], references: [id])
+  variants        Product[]       @relation("Variants")
+  defaultSupplier Supplier?       @relation("ProductDefaultSupplier", fields: [defaultSupplierId], references: [id])
+  saleItems       SaleItem[]
+  stockMovements  StockMovement[]
 }
 
 model Settings {
@@ -38,12 +69,16 @@ model Sale {
   paymentCurrency         String     // "USD" | "ZWG"
   exchangeRateUsed        Float
   totalInPaymentCurrency  Float
-  paymentMethod           String     // "cash" | "card"
+  paymentMethod           String     // "cash" | "card" | "split"
   cashReceived            Float?
   changeGiven             Float?
+  splitUsdCash            Float?
+  splitZwgCash            Float?
+  userId                  String?
   createdAt               DateTime   @default(now())
 
-  items                   SaleItem[]
+  items SaleItem[]
+  user  User?      @relation(fields: [userId], references: [id])
 }
 
 model SaleItem {
@@ -54,18 +89,32 @@ model SaleItem {
   unitPriceUSD Float
   totalUSD     Float
 
-  sale         Sale    @relation(fields: [saleId], references: [id])
-  product      Product @relation(fields: [productId], references: [id])
+  sale    Sale    @relation(fields: [saleId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
 }
 
 model StockMovement {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   productId   String
-  type        String   // "sale" | "restock" | "adjustment" | "wastage"
+  type        String    // "sale" | "restock" | "adjustment" | "wastage"
   quantityKg  Float
   notes       String?
-  createdBy   String   @default("system") // "system" | "admin"
-  createdAt   DateTime @default(now())
+  createdBy   String    @default("system")
+  userId      String?
+  supplierId  String?
+  createdAt   DateTime  @default(now())
 
-  product     Product  @relation(fields: [productId], references: [id])
+  product  Product   @relation(fields: [productId], references: [id])
+  user     User?     @relation(fields: [userId], references: [id])
+  supplier Supplier? @relation(fields: [supplierId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  detail    String   @default("{}")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

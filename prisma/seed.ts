@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -47,22 +48,39 @@ async function main() {
     create: { id: "global", usdToZwgRate: 35.50 },
   });
 
-  for (const product of products) {
-    await prisma.product.create({
-      data: {
-        name: product.name,
-        category: product.category,
-        pricePerKgUSD: product.pricePerKgUSD,
-        pricePerUnitUSD: product.pricePerUnitUSD ?? null,
-        soldByWeight: product.soldByWeight,
-        stockKg: product.stockKg,
-        lowStockThresholdKg: product.lowStockThresholdKg,
-        unitWeightKg: product.unitWeightKg ?? null,
-      },
+  // Seed Owner user if no users exist
+  const userCount = await prisma.user.count();
+  if (userCount === 0) {
+    const hash = await bcrypt.hash("counterstock", 10);
+    await prisma.user.create({
+      data: { username: "admin", passwordHash: hash, role: "OWNER", active: true },
     });
+    console.log("Created Owner user: admin / counterstock");
+  } else {
+    console.log(`Skipping user seed — ${userCount} user(s) already exist`);
   }
 
-  console.log(`Seeded ${products.length} products.`);
+  // Seed products only if none exist
+  const productCount = await prisma.product.count();
+  if (productCount === 0) {
+    for (const product of products) {
+      await prisma.product.create({
+        data: {
+          name: product.name,
+          category: product.category,
+          pricePerKgUSD: product.pricePerKgUSD,
+          pricePerUnitUSD: (product as { pricePerUnitUSD?: number }).pricePerUnitUSD ?? null,
+          soldByWeight: product.soldByWeight,
+          stockKg: product.stockKg,
+          lowStockThresholdKg: product.lowStockThresholdKg,
+          unitWeightKg: (product as { unitWeightKg?: number }).unitWeightKg ?? null,
+        },
+      });
+    }
+    console.log(`Seeded ${products.length} products.`);
+  } else {
+    console.log(`Skipping product seed — ${productCount} product(s) already exist`);
+  }
 }
 
 main()

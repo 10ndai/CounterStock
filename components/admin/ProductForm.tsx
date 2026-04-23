@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import type { Product } from "@/types";
+import type { Product, Supplier } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,20 +9,24 @@ const CATEGORIES = ["Beef", "Pork", "Poultry", "Goat", "Processed", "Other"];
 
 interface Props {
   product?: Product;
+  suppliers?: Supplier[];
+  parentId?: string;
   onSave: (data: Partial<Product>) => Promise<void>;
   onCancel: () => void;
 }
 
-export function ProductForm({ product, onSave, onCancel }: Props) {
+export function ProductForm({ product, suppliers = [], parentId, onSave, onCancel }: Props) {
   const [name, setName] = useState(product?.name ?? "");
   const [category, setCategory] = useState(product?.category ?? "Beef");
   const [pricePerKgUSD, setPricePerKgUSD] = useState(product?.pricePerKgUSD.toString() ?? "");
+  const [costPricePerKgUSD, setCostPricePerKgUSD] = useState(product?.costPricePerKgUSD?.toString() ?? "");
   const [soldByWeight, setSoldByWeight] = useState(product?.soldByWeight ?? true);
   const [pricePerUnitUSD, setPricePerUnitUSD] = useState(product?.pricePerUnitUSD?.toString() ?? "");
   const [unitWeightKg, setUnitWeightKg] = useState(product?.unitWeightKg?.toString() ?? "");
   const [lowStockThresholdKg, setLowStockThresholdKg] = useState(
-    product?.lowStockThresholdKg.toString() ?? "2"
+    product?.lowStockThresholdKg?.toString() ?? "2"
   );
+  const [defaultSupplierId, setDefaultSupplierId] = useState(product?.defaultSupplierId ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -38,10 +42,13 @@ export function ProductForm({ product, onSave, onCancel }: Props) {
       name: name.trim(),
       category,
       pricePerKgUSD: priceKg,
+      costPricePerKgUSD: costPricePerKgUSD ? parseFloat(costPricePerKgUSD) : null,
       soldByWeight,
       pricePerUnitUSD: !soldByWeight && pricePerUnitUSD ? parseFloat(pricePerUnitUSD) : null,
       unitWeightKg: !soldByWeight && unitWeightKg ? parseFloat(unitWeightKg) : null,
       lowStockThresholdKg: parseFloat(lowStockThresholdKg) || 2,
+      defaultSupplierId: defaultSupplierId || null,
+      ...(parentId ? { parentId } : {}),
     });
     setSaving(false);
   }
@@ -51,7 +58,13 @@ export function ProductForm({ product, onSave, onCancel }: Props) {
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
           <Label htmlFor="pf-name">Product name</Label>
-          <Input id="pf-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Beef Ribeye" className="mt-1" />
+          <Input
+            id="pf-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Beef Ribeye"
+            className="mt-1"
+          />
         </div>
 
         <div>
@@ -68,16 +81,37 @@ export function ProductForm({ product, onSave, onCancel }: Props) {
 
         <div>
           <Label htmlFor="pf-price">Price per kg (USD)</Label>
-          <Input id="pf-price" type="number" min="0.01" step="0.01" value={pricePerKgUSD}
-            onChange={(e) => setPricePerKgUSD(e.target.value)} placeholder="0.00" className="mt-1" />
+          <Input
+            id="pf-price"
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={pricePerKgUSD}
+            onChange={(e) => setPricePerKgUSD(e.target.value)}
+            placeholder="0.00"
+            className="mt-1"
+          />
         </div>
       </div>
 
-      {/* Sold by weight toggle */}
+      <div>
+        <Label htmlFor="pf-cost">Cost price per kg (USD, optional)</Label>
+        <Input
+          id="pf-cost"
+          type="number"
+          min="0.01"
+          step="0.01"
+          value={costPricePerKgUSD}
+          onChange={(e) => setCostPricePerKgUSD(e.target.value)}
+          placeholder="Leave blank if unknown"
+          className="mt-1"
+        />
+      </div>
+
       <div>
         <Label>Sold by</Label>
         <div className="mt-1 flex gap-2">
-          {[true, false].map((byWeight) => (
+          {([true, false] as const).map((byWeight) => (
             <button
               key={String(byWeight)}
               type="button"
@@ -98,22 +132,62 @@ export function ProductForm({ product, onSave, onCancel }: Props) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="pf-unit-price">Price per unit (USD)</Label>
-            <Input id="pf-unit-price" type="number" min="0.01" step="0.01" value={pricePerUnitUSD}
-              onChange={(e) => setPricePerUnitUSD(e.target.value)} placeholder="0.00" className="mt-1" />
+            <Input
+              id="pf-unit-price"
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={pricePerUnitUSD}
+              onChange={(e) => setPricePerUnitUSD(e.target.value)}
+              placeholder="0.00"
+              className="mt-1"
+            />
           </div>
           <div>
             <Label htmlFor="pf-unit-kg">Est. weight per unit (kg)</Label>
-            <Input id="pf-unit-kg" type="number" min="0.001" step="0.001" value={unitWeightKg}
-              onChange={(e) => setUnitWeightKg(e.target.value)} placeholder="0.500" className="mt-1" />
+            <Input
+              id="pf-unit-kg"
+              type="number"
+              min="0.001"
+              step="0.001"
+              value={unitWeightKg}
+              onChange={(e) => setUnitWeightKg(e.target.value)}
+              placeholder="0.500"
+              className="mt-1"
+            />
           </div>
         </div>
       )}
 
       <div>
         <Label htmlFor="pf-threshold">Low stock alert threshold (kg)</Label>
-        <Input id="pf-threshold" type="number" min="0.1" step="0.1" value={lowStockThresholdKg}
-          onChange={(e) => setLowStockThresholdKg(e.target.value)} className="mt-1" />
+        <Input
+          id="pf-threshold"
+          type="number"
+          min="0.1"
+          step="0.1"
+          value={lowStockThresholdKg}
+          onChange={(e) => setLowStockThresholdKg(e.target.value)}
+          className="mt-1"
+        />
       </div>
+
+      {suppliers.length > 0 && (
+        <div>
+          <Label htmlFor="pf-supplier">Default supplier (optional)</Label>
+          <select
+            id="pf-supplier"
+            value={defaultSupplierId}
+            onChange={(e) => setDefaultSupplierId(e.target.value)}
+            className="mt-1 w-full rounded-md border border-dark/20 bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="">— None —</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {error && <p className="text-sm text-alert">{error}</p>}
 

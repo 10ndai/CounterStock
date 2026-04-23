@@ -1,17 +1,30 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
+import { decodeSession } from "@/lib/auth";
 import { PinGate } from "@/components/admin/PinGate";
 import { AdminClient } from "@/components/admin/AdminClient";
-import type { Product } from "@/types";
+import type { Product, Supplier, User } from "@/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [products, settings] = await Promise.all([
-    prisma.product.findMany({ orderBy: [{ category: "asc" }, { name: "asc" }] }),
+  const store = await cookies();
+  const session = decodeSession(store.get("cs_session")?.value);
+
+  const [products, settings, users, suppliers] = await Promise.all([
+    prisma.product.findMany({
+      orderBy: [{ category: "asc" }, { name: "asc" }],
+      include: { variants: { orderBy: { name: "asc" } } },
+    }),
     prisma.settings.findUnique({ where: { id: "global" } }),
+    prisma.user.findMany({
+      orderBy: { createdAt: "asc" },
+      select: { id: true, username: true, role: true, active: true, createdAt: true },
+    }),
+    prisma.supplier.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   const rate = settings?.usdToZwgRate ?? 35.5;
@@ -33,6 +46,9 @@ export default async function AdminPage() {
             products={products as Product[]}
             exchangeRate={rate}
             rateUpdatedAt={rateUpdatedAt}
+            users={users as User[]}
+            suppliers={suppliers as Supplier[]}
+            role={session?.role}
           />
         </div>
       </div>

@@ -3,7 +3,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AlertTriangle, ShoppingCart } from "lucide-react";
-import type { Product } from "@/types";
+import type { Product, UserRole } from "@/types";
 import { useSaleCart } from "@/hooks/useSaleCart";
 import { isLowStock } from "@/lib/utils";
 import { ProductGrid } from "./ProductGrid";
@@ -18,9 +18,10 @@ interface Props {
   products: Product[];
   exchangeRate: number;
   rateUpdatedAt: Date;
+  role?: UserRole;
 }
 
-export function POSTerminal({ products, exchangeRate, rateUpdatedAt }: Props) {
+export function POSTerminal({ products, exchangeRate, rateUpdatedAt, role }: Props) {
   const { items, totalUSD, addItem, clearCart } = useSaleCart();
   const [selected, setSelected] = useState<Product | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
@@ -28,6 +29,7 @@ export function POSTerminal({ products, exchangeRate, rateUpdatedAt }: Props) {
   const [lowStockOpen, setLowStockOpen] = useState(false);
 
   const lowStockProducts = products.filter((p) => isLowStock(p.stockKg, p.lowStockThresholdKg));
+  const isCashier = role === "CASHIER";
 
   function handleSelect(product: Product) {
     setSelected(product);
@@ -56,7 +58,6 @@ export function POSTerminal({ products, exchangeRate, rateUpdatedAt }: Props) {
             1 USD = {exchangeRate} ZWG
           </span>
 
-          {/* Low stock button */}
           {lowStockProducts.length > 0 && (
             <button
               onClick={() => setLowStockOpen(true)}
@@ -67,7 +68,6 @@ export function POSTerminal({ products, exchangeRate, rateUpdatedAt }: Props) {
             </button>
           )}
 
-          {/* Mobile cart toggle */}
           <button
             onClick={() => setCartOpen((v) => !v)}
             className="relative flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors p-2 md:hidden"
@@ -83,18 +83,22 @@ export function POSTerminal({ products, exchangeRate, rateUpdatedAt }: Props) {
         </div>
       </header>
 
-      {/* Secondary nav */}
-      <nav className="bg-dark/90 border-t border-white/10 px-4 py-1.5 flex items-center gap-5 shrink-0">
-        <Link href="/inventory" className="text-surface/55 hover:text-surface text-xs font-medium transition-colors">
-          Inventory
-        </Link>
-        <Link href="/reports" className="text-surface/55 hover:text-surface text-xs font-medium transition-colors">
-          Reports
-        </Link>
-        <Link href="/admin" className="text-surface/55 hover:text-surface text-xs font-medium transition-colors">
-          Admin
-        </Link>
-      </nav>
+      {/* Secondary nav — hidden for CASHIER */}
+      {!isCashier && (
+        <nav className="bg-dark/90 border-t border-white/10 px-4 py-1.5 flex items-center gap-5 shrink-0">
+          <Link href="/inventory" className="text-surface/55 hover:text-surface text-xs font-medium transition-colors">
+            Inventory
+          </Link>
+          <Link href="/reports" className="text-surface/55 hover:text-surface text-xs font-medium transition-colors">
+            Reports
+          </Link>
+          {role !== "MANAGER" && (
+            <Link href="/admin" className="text-surface/55 hover:text-surface text-xs font-medium transition-colors">
+              Admin
+            </Link>
+          )}
+        </nav>
+      )}
 
       {/* Stale rate banner */}
       <div className="px-4 pt-3 shrink-0">
@@ -103,7 +107,6 @@ export function POSTerminal({ products, exchangeRate, rateUpdatedAt }: Props) {
 
       {/* Main layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Product area — hidden on mobile when cart is open */}
         <main className={`flex-1 overflow-hidden p-4 ${cartOpen ? "hidden md:block" : "block"}`}>
           {selected ? (
             <div className="max-w-sm mx-auto pt-4">
@@ -118,7 +121,6 @@ export function POSTerminal({ products, exchangeRate, rateUpdatedAt }: Props) {
           )}
         </main>
 
-        {/* Cart sidebar — full screen on mobile when open, fixed sidebar on md+ */}
         <aside
           className={`
             bg-white border-l border-dark/10 flex flex-col
@@ -148,7 +150,6 @@ export function POSTerminal({ products, exchangeRate, rateUpdatedAt }: Props) {
         </aside>
       </div>
 
-      {/* Low stock panel */}
       {lowStockOpen && (
         <LowStockPanel
           products={lowStockProducts}
@@ -156,7 +157,6 @@ export function POSTerminal({ products, exchangeRate, rateUpdatedAt }: Props) {
         />
       )}
 
-      {/* Checkout modal */}
       {checkingOut && (
         <CheckoutModal
           items={items}

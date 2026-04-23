@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { cookies } from "next/headers";
+import { decodeSession } from "@/lib/auth";
+import { audit } from "@/lib/audit";
 
 interface SaleItemInput {
   productId: string;
@@ -15,12 +18,16 @@ interface SaleInput {
   paymentCurrency: "USD" | "ZWG";
   exchangeRateUsed: number;
   totalInPaymentCurrency: number;
-  paymentMethod: "cash" | "card";
+  paymentMethod: "cash" | "card" | "split";
   cashReceived: number | null;
   changeGiven: number | null;
+  splitUsdCash: number | null;
+  splitZwgCash: number | null;
 }
 
 export async function POST(request: Request) {
+  const store = await cookies();
+  const session = decodeSession(store.get("cs_session")?.value);
   const body = await request.json() as SaleInput;
 
   const sale = await prisma.$transaction(async (tx) => {
@@ -34,6 +41,9 @@ export async function POST(request: Request) {
         paymentMethod: body.paymentMethod,
         cashReceived: body.cashReceived,
         changeGiven: body.changeGiven,
+        splitUsdCash: body.splitUsdCash ?? null,
+        splitZwgCash: body.splitZwgCash ?? null,
+        userId: session?.userId ?? null,
         items: {
           create: body.items.map((item) => ({
             productId: item.productId,
@@ -60,6 +70,7 @@ export async function POST(request: Request) {
           type: "sale",
           quantityKg: -kgUsed,
           createdBy: "system",
+          userId: session?.userId ?? null,
         },
       });
 
@@ -71,6 +82,10 @@ export async function POST(request: Request) {
 
     return newSale;
   });
+
+  if (session) {
+    await audit(session.userId, "SALE", { saleId: sale.id, totalUSD: body.totalUSD, method: body.paymentMethod });
+  }
 
   return NextResponse.json(sale);
 }

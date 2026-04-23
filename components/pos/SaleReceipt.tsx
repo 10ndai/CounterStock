@@ -12,6 +12,8 @@ interface SaleData {
   paymentMethod: PaymentMethod;
   cashReceived: number | null;
   changeGiven: number | null;
+  splitUsdCash?: number | null;
+  splitZwgCash?: number | null;
   createdAt: string;
 }
 
@@ -80,12 +82,26 @@ export const SaleReceipt = forwardRef<HTMLDivElement, Props>(({ sale }, ref) => 
       )}
 
       <div style={{ marginTop: 6, fontSize: 11 }}>
-        <div>Paid by: {sale.paymentMethod === "cash" ? "Cash" : "Card"} ({sale.paymentCurrency})</div>
-        {sale.cashReceived !== null && (
-          <div>Cash received: {sale.paymentCurrency === "USD" ? formatUSD(sale.cashReceived) : formatZWG(sale.cashReceived)}</div>
-        )}
-        {sale.changeGiven !== null && sale.changeGiven > 0 && (
-          <div>Change: {sale.paymentCurrency === "USD" ? formatUSD(sale.changeGiven) : formatZWG(sale.changeGiven)}</div>
+        {sale.paymentMethod === "split" ? (
+          <>
+            <div>Paid by: Split payment</div>
+            {sale.splitUsdCash != null && sale.splitUsdCash > 0 && (
+              <div>USD cash: {formatUSD(sale.splitUsdCash)}</div>
+            )}
+            {sale.splitZwgCash != null && sale.splitZwgCash > 0 && (
+              <div>ZWG cash: {formatZWG(sale.splitZwgCash)}</div>
+            )}
+          </>
+        ) : (
+          <>
+            <div>Paid by: {sale.paymentMethod === "cash" ? "Cash" : "Card"} ({sale.paymentCurrency})</div>
+            {sale.cashReceived !== null && (
+              <div>Cash received: {sale.paymentCurrency === "USD" ? formatUSD(sale.cashReceived) : formatZWG(sale.cashReceived)}</div>
+            )}
+            {sale.changeGiven !== null && sale.changeGiven > 0 && (
+              <div>Change: {sale.paymentCurrency === "USD" ? formatUSD(sale.changeGiven) : formatZWG(sale.changeGiven)}</div>
+            )}
+          </>
         )}
       </div>
 

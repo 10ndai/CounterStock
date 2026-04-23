@@ -16,6 +16,7 @@ export async function GET() {
   const zwgCash = sales.filter((s) => s.paymentCurrency === "ZWG" && s.paymentMethod === "cash");
   const usdCard = sales.filter((s) => s.paymentCurrency === "USD" && s.paymentMethod === "card");
   const zwgCard = sales.filter((s) => s.paymentCurrency === "ZWG" && s.paymentMethod === "card");
+  const splitSales = sales.filter((s) => s.paymentMethod === "split");
 
   return NextResponse.json({
     generatedAt: new Date().toISOString(),
@@ -42,6 +43,12 @@ export async function GET() {
       count: zwgCard.length,
       totalUSD: zwgCard.reduce((s, sale) => s + sale.totalUSD, 0),
       totalZWG: zwgCard.reduce((s, sale) => s + sale.totalInPaymentCurrency, 0),
+    },
+    splitPayments: {
+      count: splitSales.length,
+      totalUSD: splitSales.reduce((s, sale) => s + sale.totalUSD, 0),
+      totalUsdCash: splitSales.reduce((s, sale) => s + (sale.splitUsdCash ?? 0), 0),
+      totalZwgCash: splitSales.reduce((s, sale) => s + (sale.splitZwgCash ?? 0), 0),
     },
     grandTotalUSD: sales.reduce((s, sale) => s + sale.totalUSD, 0),
   });

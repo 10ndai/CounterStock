@@ -1,14 +1,25 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { SummaryCards } from "./SummaryCards";
 import { TopProducts } from "./TopProducts";
 import { SalesList } from "./SalesList";
 import { CashUpReport } from "./CashUpReport";
+import { StaffReport } from "./StaffReport";
 import { Button } from "@/components/ui/button";
 import { exportSalesCsv, exportProductsCsv } from "@/lib/exportCsv";
+import type { UserRole } from "@/types";
 
 type Range = "today" | "yesterday" | "week" | "month" | "custom";
+
+interface ProductStat {
+  name: string;
+  category: string;
+  revenueUSD: number;
+  quantitySold: number;
+  costUSD?: number;
+  hasCost?: boolean;
+}
 
 interface ReportData {
   totalTransactions: number;
@@ -21,7 +32,11 @@ interface ReportData {
   cashRevenue: number;
   cardCount: number;
   cardRevenue: number;
-  topProducts: { name: string; category: string; revenueUSD: number; quantitySold: number }[];
+  splitCount?: number;
+  splitRevenue?: number;
+  grossProfit?: number;
+  hasCostData?: boolean;
+  topProducts: ProductStat[];
   sales: {
     id: string;
     createdAt: string;
@@ -34,12 +49,11 @@ interface ReportData {
   }[];
 }
 
-type Tab = "summary" | "products" | "transactions" | "cashup";
+type Tab = "summary" | "products" | "transactions" | "cashup" | "staff";
 
 function getRangeDates(range: Range, customFrom: string, customTo: string) {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
   if (range === "today") {
     return { from: today.toISOString(), to: new Date(today.getTime() + 86400000 - 1).toISOString() };
   }
@@ -68,13 +82,42 @@ const RANGES: { key: Range; label: string }[] = [
   { key: "custom", label: "Custom" },
 ];
 
-export function ReportsClient({ defaultRate }: { defaultRate: number }) {
+async function exportPdf(data: ReportData, dateLabel: string) {
+  const { default: jsPDF } = await import("jspdf");
+  const { default: autoTable } = await import("jspdf-autotable");
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text("CounterStock — Sales Report", 14, 16);
+  doc.setFontSize(10);
+  doc.text(`Period: ${dateLabel}`, 14, 24);
+  doc.text(`Generated: ${new Date().toLocaleString("en-ZW")}`, 14, 30);
+  doc.text(`Total transactions: ${data.totalTransactions}   Revenue: $${data.totalUSD.toFixed(2)}`, 14, 36);
+
+  autoTable(doc, {
+    startY: 44,
+    head: [["#", "Product", "Category", "Qty Sold", "Revenue (USD)"]],
+    body: data.topProducts.map((p, i) => [
+      i + 1,
+      p.name,
+      p.category,
+      p.quantitySold.toFixed(3),
+      `$${p.revenueUSD.toFixed(2)}`,
+    ]),
+  });
+
+  doc.save(`counterstock-report-${dateLabel}.pdf`);
+}
+
+export function ReportsClient({ defaultRate, role }: { defaultRate: number; role?: UserRole }) {
   const [range, setRange] = useState<Range>("today");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [tab, setTab] = useState<Tab>("summary");
   const [data, setData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const showStaff = role === "OWNER" || role === "MANAGER";
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -88,6 +131,14 @@ export function ReportsClient({ defaultRate }: { defaultRate: number }) {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const dateLabel = range === "custom" ? `${customFrom}-${customTo}` : range;
+
+  const reportTabs: { key: Tab; label: string }[] = [
+    { key: "summary", label: "Summary" },
+    { key: "products", label: "Top Products" },
+    { key: "transactions", label: `Transactions (${data?.totalTransactions ?? 0})` },
+    { key: "cashup", label: "Cash Up" },
+    ...(showStaff ? [{ key: "staff" as Tab, label: "Staff" }] : []),
+  ];
 
   return (
     <div className="space-y-5">
@@ -129,16 +180,11 @@ export function ReportsClient({ defaultRate }: { defaultRate: number }) {
         <>
           {/* Tabs */}
           <div className="flex gap-1 rounded-xl bg-dark/5 p-1 flex-wrap">
-            {([
-              { key: "summary" as Tab, label: "Summary" },
-              { key: "products" as Tab, label: "Top Products" },
-              { key: "transactions" as Tab, label: `Transactions (${data.totalTransactions})` },
-              { key: "cashup" as Tab, label: "Cash Up" },
-            ]).map((t) => (
+            {reportTabs.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors min-w-[80px] ${
                   tab === t.key ? "bg-white text-dark shadow-sm" : "text-dark/50 hover:text-dark"
                 }`}
               >
@@ -147,23 +193,32 @@ export function ReportsClient({ defaultRate }: { defaultRate: number }) {
             ))}
           </div>
 
-          {/* Export */}
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => exportSalesCsv(data.sales, dateLabel)}
-            >
-              <Download size={14} /> Export Sales CSV
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => exportProductsCsv(data.topProducts, dateLabel)}
-            >
-              <Download size={14} /> Export Products CSV
-            </Button>
-          </div>
+          {/* Export buttons */}
+          {tab !== "cashup" && tab !== "staff" && (
+            <div className="flex justify-end gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportSalesCsv(data.sales, dateLabel)}
+              >
+                <Download size={14} /> Sales CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportProductsCsv(data.topProducts, dateLabel)}
+              >
+                <Download size={14} /> Products CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportPdf(data, dateLabel)}
+              >
+                <FileText size={14} /> Export PDF
+              </Button>
+            </div>
+          )}
 
           {tab === "summary" && (
             <SummaryCards
@@ -177,16 +232,19 @@ export function ReportsClient({ defaultRate }: { defaultRate: number }) {
               cashRevenue={data.cashRevenue}
               cardCount={data.cardCount}
               cardRevenue={data.cardRevenue}
+              splitCount={data.splitCount}
+              splitRevenue={data.splitRevenue}
+              grossProfit={data.grossProfit}
+              hasCostData={data.hasCostData}
               avgRate={defaultRate}
             />
           )}
           {tab === "products" && (
             <TopProducts products={data.topProducts} totalUSD={data.totalUSD} />
           )}
-          {tab === "transactions" && (
-            <SalesList sales={data.sales} />
-          )}
+          {tab === "transactions" && <SalesList sales={data.sales} />}
           {tab === "cashup" && <CashUpReport />}
+          {tab === "staff" && showStaff && <StaffReport />}
         </>
       )}
     </div>

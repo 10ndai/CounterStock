@@ -46,10 +46,11 @@ export function LoginGate({ children }: Props) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     });
-    const { ok } = await res.json() as { ok: boolean };
+    const json = await res.json() as { ok: boolean; userId?: string; username?: string; role?: string };
     setSubmitting(false);
-    if (ok) {
+    if (json.ok) {
       sessionStorage.setItem("cs_auth", "1");
+      sessionStorage.setItem("cs_user", JSON.stringify({ userId: json.userId, username: json.username, role: json.role }));
       setLogoVisible(false);
       setFading(false);
       setPhase("animating");

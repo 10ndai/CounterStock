@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import type { Product, StockMovement } from "@/types";
+import type { Product, StockMovement, Supplier } from "@/types";
 import { RestockForm } from "./RestockForm";
 import { AdjustmentForm } from "./AdjustmentForm";
 import { MovementHistory } from "./MovementHistory";
@@ -13,11 +13,12 @@ interface Props {
   products: Product[];
   movements: MovementWithProduct[];
   lowStockProducts: Product[];
+  suppliers?: Supplier[];
 }
 
 type Tab = "restock" | "adjustment" | "history";
 
-export function InventoryClient({ products, movements, lowStockProducts }: Props) {
+export function InventoryClient({ products, movements, lowStockProducts, suppliers = [] }: Props) {
   const [tab, setTab] = useState<Tab>("restock");
 
   const tabs: { key: Tab; label: string }[] = [
@@ -63,7 +64,7 @@ export function InventoryClient({ products, movements, lowStockProducts }: Props
 
       {/* Panel */}
       <div>
-        {tab === "restock" && <RestockForm products={products} />}
+        {tab === "restock" && <RestockForm products={products} suppliers={suppliers} />}
         {tab === "adjustment" && <AdjustmentForm products={products} />}
         {tab === "history" && <MovementHistory movements={movements} />}
       </div>

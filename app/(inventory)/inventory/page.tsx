@@ -5,12 +5,12 @@ import { prisma } from "@/lib/db";
 import { isLowStock, groupByCategory } from "@/lib/utils";
 import { StockBadge } from "@/components/inventory/StockBadge";
 import { InventoryClient } from "@/components/inventory/InventoryClient";
-import type { Product, StockMovement } from "@/types";
+import type { Product, StockMovement, Supplier } from "@/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function InventoryPage() {
-  const [products, movements] = await Promise.all([
+  const [products, movements, suppliers] = await Promise.all([
     prisma.product.findMany({
       where: { active: true },
       orderBy: [{ category: "asc" }, { name: "asc" }],
@@ -20,6 +20,7 @@ export default async function InventoryPage() {
       orderBy: { createdAt: "desc" },
       take: 100,
     }),
+    prisma.supplier.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
   ]);
 
   const lowStockProducts = products.filter((p) =>
@@ -90,6 +91,7 @@ export default async function InventoryPage() {
             products={products as Product[]}
             movements={movements as (StockMovement & { product: { name: string } })[]}
             lowStockProducts={lowStockProducts as Product[]}
+            suppliers={suppliers as Supplier[]}
           />
         </section>
       </div>

@@ -11,6 +11,7 @@ interface CashUpData {
   zwgCash: { count: number; totalUSD: number; cashInTillZWG: number; changeGivenZWG: number; netZWG: number };
   usdCard: { count: number; totalUSD: number };
   zwgCard: { count: number; totalUSD: number; totalZWG: number };
+  splitPayments?: { count: number; totalUSD: number; totalUsdCash: number; totalZwgCash: number };
   grandTotalUSD: number;
 }
 
@@ -89,6 +90,16 @@ export function CashUpReport() {
         <Row label="Net ZWG cash" value={formatZWG(data.zwgCash.netZWG)} bold />
         <Row label="USD equivalent" value={formatUSD(data.zwgCash.totalUSD)} />
       </Section>
+
+      {/* Split Payments */}
+      {data.splitPayments && data.splitPayments.count > 0 && (
+        <Section title="Split Payments">
+          <Row label="Transactions" value={data.splitPayments.count.toString()} />
+          <Row label="USD cash portion" value={formatUSD(data.splitPayments.totalUsdCash)} />
+          <Row label="ZWG cash portion" value={formatZWG(data.splitPayments.totalZwgCash)} />
+          <Row label="Total USD equivalent" value={formatUSD(data.splitPayments.totalUSD)} bold />
+        </Section>
+      )}
 
       {/* Card */}
       <Section title="Card Payments">
