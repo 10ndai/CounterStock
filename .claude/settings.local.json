@@ -10,7 +10,13 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(npx tsc *)",
-      "Bash(node -e \"console.log\\(require\\('./node_modules/react-to-print/package.json'\\).version\\)\")"
+      "Bash(node -e \"console.log\\(require\\('./node_modules/react-to-print/package.json'\\).version\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"require\\('docx'\\)\")",
+      "Bash(node scripts/generate-docs.mjs)",
+      "Bash(npm uninstall *)",
+      "Bash(gh --version)",
+      "Bash(node *)"
     ]
   }
 }
