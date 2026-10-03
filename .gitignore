@@ -25,3 +25,6 @@ npm-debug.log*
 # build artifacts
 tsconfig.tsbuildinfo
 .claude/
+DEVLOG.md
+CLAUDE.md
+*.tsbuildinfo
